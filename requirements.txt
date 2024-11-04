@@ -3,3 +3,5 @@ djangorestframework
 environs
 mysqlclient
 pymysql
+django-recaptcha
+requests

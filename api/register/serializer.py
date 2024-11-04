@@ -1,16 +1,33 @@
+from django.conf import settings
 from rest_framework import serializers
 from .models import Register
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.models import User
+import requests
+
+
+class RecaptchaV3Validator:
+    def __call__(self , value):
+        response = requests.post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            data = {
+                'secret' : settings.RECAPTCHA_PRIVATE_KEY ,
+                'response' : value
+            }
+        )
+        result = response.json()
+        if not result.get('success') or result.get('score' , 0) < settings.RECAPTCHA_REQUIRED_SCORE:
+            raise serializers.ValidationError('reCAPTCHA validation failed')
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only = True)
     confirm_password = serializers.CharField(write_only = True)
+    recaptcha = serializers.CharField(write_only = True , validators = [RecaptchaV3Validator()])
 
     class Meta :
         model = User
-        fields = ["first_name" , "last_name" , "username" , "email" , "password" , "confirm_password"]
+        fields = ["first_name" , "last_name" , "username" , "email" , "password" , "confirm_password" , "recaptcha"]
 
     def validate(self ,data):
         if data['password'] != data['confirm_password']:
@@ -19,6 +36,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self , validated_data):
         validated_data.pop('confirm_password')
+        validated_data.pop('recaptcha')
         user = User.objects.create_user(
             first_name = validated_data ['first_name'],
             last_name = validated_data ['last_name'],
