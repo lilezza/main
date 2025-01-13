@@ -1,6 +1,7 @@
 # validations.py
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email as django_validate_email
+from django.core.validators import RegexValidator
 import re
 
 def custom_validation(data):
@@ -35,4 +36,13 @@ def validate_password(data):
     password = data.get('password')
     if len(password) < 8:
         raise ValidationError("Password must be at least 8 characters long.")
+    return True
+
+def validate_phone_number(phone_number):
+    """
+    اعتبار سنجی شماره موبایل
+    """
+    phone_regex = r'^(\+98|0)?9\d{9}$'
+    if not re.match(phone_regex , phone_number):
+        raise ValidationError("please enter correct phone number")
     return True

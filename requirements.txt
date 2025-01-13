@@ -5,3 +5,5 @@ mysqlclient
 pymysql
 django-recaptcha
 requests
+psycopg
+djangorestframework-simplejwt

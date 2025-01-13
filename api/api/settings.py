@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+from datetime import timedelta
 
 import pymysql
 pymysql.install_as_MySQLdb()
@@ -43,7 +44,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'register',
     'rest_framework',
+    'rest_framework_simplejwt',
 ]
+
+AUTH_USER_MODEL = 'register.CustomUser'
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -54,6 +59,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_HTTPONLY = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
 
 ROOT_URLCONF = 'api.urls'
 
@@ -75,18 +89,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api.wsgi.application'
 
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'webino',
-        'USER': 'root',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'webogene',
+        'USER': 'mac',
         'PASSWORD': '',
         'HOST': 'localhost',
-        'PORT': '3308',
+        'PORT': '5432',
     }
 }
 
@@ -149,6 +172,13 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-RECAPTCHA_PUBLIC_KEY = '6Lcr93QqAAAAAC4TTmJhAjMF-NK91D5ETIbWHyTe'
-RECAPTCHA_PRIVATE_KEY = '6Lcr93QqAAAAANpts-bunNCo9RzYsZZxlnIZswld'
-RECAPTCHA_REQUIRED_SCORE = 0.5
+# RECAPTCHA_PUBLIC_KEY = '6Lcr93QqAAAAAC4TTmJhAjMF-NK91D5ETIbWHyTe'
+# RECAPTCHA_PRIVATE_KEY = '6Lcr93QqAAAAANpts-bunNCo9RzYsZZxlnIZswld'
+# RECAPTCHA_REQUIRED_SCORE = 0.5
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ]
+}
