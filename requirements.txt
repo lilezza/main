@@ -7,3 +7,4 @@ django-recaptcha
 requests
 psycopg
 djangorestframework-simplejwt
+django-cors-headers

@@ -66,7 +66,7 @@ class UserRegistrationView(APIView):
             )
 
             # ذخیره پروفایل Register
-            Register.objects.create(
+            register_profile = Register.objects.create(
                 user=custom_user,
                 shop_name=serializer.validated_data['shop_name'],
                 email=serializer.validated_data['email'],
@@ -78,9 +78,16 @@ class UserRegistrationView(APIView):
             refresh = RefreshToken.for_user(custom_user)
             return Response(
                 {
-                    "access_token": str(refresh.access_token),
-                    "refresh_token": str(refresh),
-                    "message": "User registered successfully",
+                    "پیغام": "کاربر با موفقیت ثبت نام کرد",
+                    "token" :{
+                        "access_token": str(refresh.access_token),
+                        "refresh_token": str(refresh),
+                    },
+                    "user" : {
+                        "email" : register_profile.email ,
+                        "shop_name" : register_profile.shop_name ,
+                        "phone_number" : register_profile.phone_number,
+                    }
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -122,7 +129,7 @@ class UserProfileView(APIView):
             profile = Register.objects.get(user=request.user)
         except Register.DoesNotExist:
             return Response(
-                {"detail": "User not found", "code": "user_not_found"},
+                {"جزئیات": "کاربر پیدا نشد", "کد": "کاربر ـ پیدا ـ نشد"},
                 status=status.HTTP_404_NOT_FOUND,
             )
 
@@ -184,27 +191,36 @@ class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
+        shop_name = request.data.get("shop_name")
         email = request.data.get("email")
         password = request.data.get("password")
 
-        if not email or not password:
-            return Response({"error": "Email and password are required."}, status=400)
+        if not shop_name or not email or not password:
+            return Response({"خطا": "نام فروشگاه، ایمیل و رمز عبور الزامی است."}, status=400)
 
         try:
-            custom_user = CustomUser.objects.get(email=email)
+            # custom_user = CustomUser.objects.get(email=email)
+            register_user = Register.objects.get(email=email, shop_name=shop_name)
         except CustomUser.DoesNotExist:
-            return Response({"error": "Invalid credentials."}, status=400)
+            return Response({"خطا": "اعتبارنامه یا نام فروشگاه نامعتبر است."}, status=400)
 
-        if not custom_user.check_password(password):
-            return Response({"error": "Invalid credentials."}, status=400)
+        if not register_user.check_password(password):
+            return Response({"خطا": "اعتبار نامعتبر"}, status=400)
 
         # تولید توکن JWT
-        refresh = RefreshToken.for_user(custom_user)
+        refresh = RefreshToken.for_user(register_user.user)
         return Response(
             {
+                "پیغام": "ورود با موفقیت",
+                "token" : {
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),
-                "message": "Login successful",
+                },
+                "user" : {
+                    "email" : register_user.email ,
+                    "shop_name": register_user.shop_name,
+                    "phone_number": register_user.phone_number,
+                }
             },
             status=status.HTTP_200_OK,
         )
@@ -222,7 +238,7 @@ class UserLogoutView(APIView):
 
     def post(self, request):
         logout(request)
-        return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+        return Response({"پیغام": "خروج موفقیت آمیز بود"}, status=status.HTTP_200_OK)
 
 
 

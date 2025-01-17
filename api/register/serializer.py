@@ -32,7 +32,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
 
     def validate(self ,data):
         if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError("password do not match!")
+            raise serializers.ValidationError("رمز عبور مطابقت ندارد!")
         return data
 
     def create(self, validated_data):
@@ -62,10 +62,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
 
 class UserLoginSerializer(serializers.Serializer):
+    shop_name = serializers.CharField()
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
+        shop_name = data['shop_name']
         email = data['email']
         password = data['password']
 
@@ -73,30 +75,32 @@ class UserLoginSerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            raise serializers.ValidationError("User not found.")
+            raise serializers.ValidationError("کاربر پیدا نشد")
 
         # بررسی رمز عبور
         if not user.check_password(password):
-            raise serializers.ValidationError("Incorrect credentials.")
+            raise serializers.ValidationError("اعتبارنامه نادرست")
 
         return user
 
 class UserLoginSerializer(serializers.Serializer):
+    shop_name = serializers.CharField()
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
+        shop_name = data['shop_name']
         email = data['email']
         password = data['password']
 
         # پیدا کردن کاربر با ایمیل از مدل Register
         try:
-            user = Register.objects.get(email=email)
+            register_user = Register.objects.get(email=email, shop_name=shop_name)
         except Register.DoesNotExist:
-            raise serializers.ValidationError("User not found.")
+            raise serializers.ValidationError("کاربر پیدا نشد")
 
         # بررسی رمز عبور
-        if not user.check_password(password):
-            raise serializers.ValidationError("Incorrect credentials.")
+        if not register_user.check_password(password):
+            raise serializers.ValidationError("اعتبارنامه نادرست")
 
-        return user
+        return register_user

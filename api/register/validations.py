@@ -10,17 +10,17 @@ def custom_validation(data):
     if email:
         email_regex = r"[^@]+@[^@]+\.[^@]+"
         if not re.match(email_regex, email):
-            raise ValidationError("Invalid email format")
+            raise ValidationError("قالب ایمیل نامعتبر است")
 
     # چک کردن طول پسورد
     password = data.get("password")
     if password and len(password) < 8:
-        raise ValidationError("Password must be at least 8 characters long")
+        raise ValidationError("رمز عبور باید حداقل 8 کاراکتر باشد")
 
     # چک کردن تکرار پسورد
     confirm_password = data.get("confirm_password")
     if password != confirm_password:
-        raise ValidationError("Passwords do not match")
+        raise ValidationError("گذرواژه ها مطابقت ندارند")
 
     # اگر تمام چک‌ها موفقیت‌آمیز بود، داده‌های تمیز را برمی‌گرداند
     return data
@@ -30,12 +30,12 @@ def validate_email(data):
         django_validate_email(data.get('email'))
         return True
     except ValidationError:
-        raise ValidationError("Invalid email format.")
+        raise ValidationError("قالب ایمیل نامعتبر است.")
 
 def validate_password(data):
     password = data.get('password')
     if len(password) < 8:
-        raise ValidationError("Password must be at least 8 characters long.")
+        raise ValidationError("رمز عبور باید حداقل 8 کاراکتر باشد.")
     return True
 
 def validate_phone_number(phone_number):
@@ -44,5 +44,5 @@ def validate_phone_number(phone_number):
     """
     phone_regex = r'^(\+98|0)?9\d{9}$'
     if not re.match(phone_regex , phone_number):
-        raise ValidationError("please enter correct phone number")
+        raise ValidationError("لطفا شماره تلفن صحیح را وارد کنید")
     return True
